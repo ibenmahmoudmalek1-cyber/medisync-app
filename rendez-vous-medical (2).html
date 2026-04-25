@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MédiSync — Prise de Rendez-Vous</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ef;
+    --card: #ffffff;
+    --primary: #1a4a6b;
+    --primary-light: #2a6496;
+    --accent: #e8734a;
+    --accent-soft: #fdf0ea;
+    --text: #1c1c1e;
+    --text-muted: #6e6e73;
+    --border: #e2ddd6;
+    --success: #2d9e6b;
+    --success-bg: #edf7f2;
+    --danger: #c0392b;
+    --danger-bg: #fdf0ef;
+    --available: #d4edda;
+    --available-text: #155724;
+    --booked: #f8d7da;
+    --booked-text: #721c24;
+    --today: #fff3cd;
+    --today-text: #856404;
+    --shadow: 0 4px 24px rgba(26,74,107,0.08);
+    --shadow-hover: 0 8px 32px rgba(26,74,107,0.14);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ─── LOGIN ─── */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a4a6b 0%, #2a6496 50%, #e8734a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  #login-screen::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    top: -100px; right: -100px;
+  }
+  #login-screen::after {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    bottom: -80px; left: -80px;
+  }
+
+  .login-card {
+    background: white;
+    border-radius: 24px;
+    padding: 48px 40px;
+    width: 420px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.5s ease;
+  }
+  @keyframes slideUp {
+    from { opacity:0; transform:translateY(30px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  .login-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .login-logo-icon {
+    width: 48px; height: 48px;
+    background: var(--primary);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .login-logo h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--primary);
+  }
+  .login-logo span { color: var(--accent); }
+
+  .login-subtitle { color: var(--text-muted); margin-bottom: 28px; font-size: 14px; }
+
+  .role-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+  .role-tab {
+    padding: 10px 6px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .role-tab .tab-icon { font-size: 18px; }
+  .role-tab.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg);
+    transition: all 0.2s;
+    outline: none;
+  }
+  .form-input:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(26,74,107,0.1);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { background: var(--primary-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,74,107,0.3); }
+
+  .demo-hint {
+    margin-top: 16px;
+    padding: 12px;
+    background: #f0f7ff;
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--primary);
+    text-align: center;
+  }
+
+  /* ─── APP SHELL ─── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+
+  .topbar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .topbar-brand {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .topbar-brand-icon {
+    width: 36px; height: 36px;
+    background: var(--primary);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .topbar-brand h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--primary);
+  }
+  .topbar-brand h2 span { color: var(--accent); }
+
+  .topbar-right {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .user-badge {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg);
+    border-radius: 50px;
+    padding: 6px 16px 6px 6px;
+    cursor: pointer;
+  }
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+  }
+  .user-name { font-size: 14px; font-weight: 500; }
+  .user-role { font-size: 11px; color: var(--text-muted); }
+
+  .btn-logout {
+    padding: 8px 16px;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  .main-layout {
+    display: flex;
+    flex: 1;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 240px;
+    background: white;
+    border-right: 1px solid var(--border);
+    padding: 24px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+  .sidebar-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    padding: 8px 12px 4px;
+    margin-top: 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.18s;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: #e8f1f8; color: var(--primary); }
+  .nav-item .nav-icon { font-size: 17px; width: 22px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: white;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+  }
+
+  /* ─── CONTENT ─── */
+  .content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+  }
+
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-header {
+    margin-bottom: 28px;
+  }
+  .page-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .page-header p { color: var(--text-muted); font-size: 14px; }
+
+  /* ─── CARDS ─── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .stat-info p { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-info h3 { font-size: 26px; font-weight: 700; color: var(--text); }
+
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ─── CALENDAR ─── */
+  .calendar-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .calendar-nav h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--primary);
+  }
+  .cal-nav-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    color: var(--primary);
+  }
+  .cal-nav-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-day-header {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 0;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    position: relative;
+    border: 1.5px solid transparent;
+    transition: all 0.18s;
+    background: transparent;
+    gap: 3px;
+  }
+  .cal-day:hover:not(.empty):not(.past) {
+    border-color: var(--primary);
+    background: #e8f1f8;
+  }
+  .cal-day.empty { cursor: default; }
+  .cal-day.past { color: #ccc; cursor: not-allowed; }
+  .cal-day.today {
+    background: var(--today);
+    color: var(--today-text);
+    font-weight: 700;
+  }
+  .cal-day.available { background: var(--available); color: var(--available-text); }
+  .cal-day.booked { background: var(--booked); color: var(--booked-text); }
+  .cal-day.selected {
+    background: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 12px rgba(26,74,107,0.35);
+  }
+  .cal-day-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  .calendar-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 4px;
+  }
+
+  /* ─── SLOTS ─── */
+  .slots-panel {
+    position: sticky;
+    top: 20px;
+  }
+  .slots-panel h4 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    color: var(--primary);
+    margin-bottom: 12px;
+  }
+  .slot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .slot-btn {
+    padding: 10px 8px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: center;
+  }
+  .slot-btn.free:hover { border-color: var(--success); background: var(--success-bg); color: var(--success); }
+  .slot-btn.taken { background: var(--booked); color: var(--booked-text); cursor: not-allowed; border-color: transparent; font-size: 12px; }
+  .slot-btn.selected-slot { background: var(--primary); color: white; border-color: var(--primary); }
+
+  .booking-form { margin-top: 16px; }
+  .booking-form .form-group { margin-bottom: 12px; }
+  .btn-book {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-book:hover { background: #d4633a; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,115,74,0.35); }
+  .btn-book:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ─── APPOINTMENTS TABLE ─── */
+  .rdv-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .rdv-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border);
+  }
+  .rdv-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--bg);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  .rdv-table tr:hover td { background: var(--bg); }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .status-badge.confirmed { background: var(--success-bg); color: var(--success); }
+  .status-badge.pending { background: var(--today); color: var(--today-text); }
+  .status-badge.cancelled { background: var(--danger-bg); color: var(--danger); }
+
+  .btn-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.18s;
+  }
+  .btn-icon:hover { border-color: var(--primary); background: #e8f1f8; }
+  .btn-icon.danger:hover { border-color: var(--danger); background: var(--danger-bg); }
+
+  /* ─── ADMIN MACHINES ─── */
+  .machines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .machine-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .machine-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .machine-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .machine-icon {
+    width: 44px; height: 44px;
+    background: #e8f1f8;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .machine-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .machine-status.active { background: var(--success-bg); color: var(--success); }
+  .machine-status.inactive { background: var(--danger-bg); color: var(--danger); }
+  .machine-status.maintenance { background: var(--today); color: var(--today-text); }
+  .machine-name { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .machine-info { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+
+  .machine-schedule {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .machine-schedule-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .schedule-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 3px 0;
+    color: var(--text-muted);
+  }
+  .schedule-row span:last-child { font-weight: 600; color: var(--text); }
+
+  .machine-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn-sm {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: center;
+    border: 1.5px solid var(--border);
+    background: white;
+    color: var(--text-muted);
+  }
+  .btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-sm.primary { background: var(--primary); color: white; border-color: var(--primary); }
+  .btn-sm.primary:hover { background: var(--primary-light); }
+  .btn-sm.danger { border-color: var(--danger); color: var(--danger); }
+  .btn-sm.danger:hover { background: var(--danger-bg); }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    width: 480px;
+    max-width: 95vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+    transform: scale(0.95);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .modal-header h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--primary);
+  }
+  .modal-close {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+  /* ─── TOAST ─── */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    background: var(--text);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    animation: toastIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 320px;
+  }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+  .empty-state p { font-size: 14px; }
+
+  /* ─── SELECT DATE PROMPT ─── */
+  .select-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .select-prompt .prompt-icon { font-size: 36px; margin-bottom: 12px; }
+  .select-prompt p { font-size: 13px; }
+
+  /* toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label { font-size: 14px; font-weight: 500; }
+  .toggle-desc { font-size: 12px; color: var(--text-muted); }
+  .toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: white;
+    left: 3px; top: 3px;
+    transition: 0.3s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--success); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+  /* Patient ordonnance/analyse empty */
+  .mini-card {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mini-card-info p { font-size: 13px; color: var(--text-muted); }
+  .mini-card-info h5 { font-size: 14px; font-weight: 600; }
+
+  @media (max-width: 900px) {
+    .calendar-wrapper { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN ════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🏥</div>
+      <h1>Médi<span>Sync</span></h1>
+    </div>
+    <p class="login-subtitle">Portail de gestion des rendez-vous médicaux</p>
+
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="selectRole('patient')" id="tab-patient">
+        <span class="tab-icon">🧑‍⚕️</span> Patient
+      </button>
+      <button class="role-tab" onclick="selectRole('medecin')" id="tab-medecin">
+        <span class="tab-icon">👨‍⚕️</span> Médecin
+      </button>
+      <button class="role-tab" onclick="selectRole('admin')" id="tab-admin">
+        <span class="tab-icon">👩‍💼</span> Assistant
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" id="login-email" placeholder="votre@email.com" value="patient@demo.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input class="form-input" type="password" id="login-pwd" placeholder="••••••••" value="demo123">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Se connecter →</button>
+    <div class="demo-hint">
+      💡 Démo — mdp: <strong>demo123</strong> — Compte système: <strong>assistant@demo.com</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ APP ════════════════ -->
+<div id="app">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-brand-icon">🏥</div>
+      <h2>Médi<span>Sync</span></h2>
+    </div>
+    <div class="topbar-right">
+      <div class="user-badge">
+        <div class="user-avatar" id="user-avatar"></div>
+        <div>
+          <div class="user-name" id="user-name-display"></div>
+          <div class="user-role" id="user-role-display"></div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-section-title">Navigation</div>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="content-area">
+      <!-- Pages injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<!-- Toasts -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const USERS = {
+  'patient@demo.com':  { role:'patient',  name:'Amina Benali',     color:'#2a6496' },
+  'medecin@demo.com':  { role:'medecin',  name:'Dr. Karim Saidi',  color:'#2d9e6b' },
+  'assistant@demo.com':   { role:'admin',    name:'Fatima Zahra', color:'#8e44ad' },
+};
+
+// Appointments: { 'YYYY-MM-DD': [{time,patient,doctor,status,motif}] }
+const appointments = {};
+
+// Pre-populate some appointments
+function initAppointments() {
+  const today = new Date();
+  const addRDV = (daysOffset, time, patient, doctor, status, motif) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + daysOffset);
+    const key = dateKey(d);
+    if (!appointments[key]) appointments[key] = [];
+    appointments[key].push({ time, patient, doctor, status, motif, id: Math.random().toString(36).slice(2) });
+  };
+  addRDV(1, '09:00', 'Amina Benali', 'Dr. Karim Saidi', 'confirmed', 'Consultation générale');
+  addRDV(1, '10:30', 'Mohamed Trabelsi', 'Dr. Karim Saidi', 'confirmed', 'Suivi diabète');
+  addRDV(2, '09:00', 'Sana Jabbour', 'Dr. Karim Saidi', 'pending', 'Bilan sanguin');
+  addRDV(3, '11:00', 'Amina Benali', 'Dr. Karim Saidi', 'confirmed', 'Résultats analyses');
+  addRDV(5, '14:00', 'Rania Hamdi', 'Dr. Karim Saidi', 'confirmed', 'Ordonnance');
+  addRDV(7, '09:00', 'Amina Benali', 'Dr. Karim Saidi', 'pending', 'Vaccination');
+}
+
+const TIME_SLOTS = ['08:00','09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00'];
+
+const MACHINES = [
+  { id:'m1', name:'Scanner IRM 3T', type:'Imagerie', room:'Salle 101', doctor:'Dr. Karim Saidi', status:'active',
+    schedule: { lun:'08:00-17:00', mar:'08:00-17:00', mer:'08:00-12:00', jeu:'08:00-17:00', ven:'08:00-15:00' },
+    maxPerDay: 8 },
+  { id:'m2', name:'Échographe Portable', type:'Echographie', room:'Salle 102', doctor:'Dr. Sonia Mejri', status:'active',
+    schedule: { lun:'09:00-16:00', mar:'09:00-16:00', mer:'Fermé', jeu:'09:00-16:00', ven:'09:00-13:00' },
+    maxPerDay: 6 },
+  { id:'m3', name:'Radiologie Numérique', type:'Radiologie', room:'Salle 103', doctor:'Dr. Mehdi Hajji', status:'maintenance',
+    schedule: { lun:'08:00-18:00', mar:'08:00-18:00', mer:'08:00-18:00', jeu:'08:00-18:00', ven:'08:00-16:00' },
+    maxPerDay: 10 },
+  { id:'m4', name:'Électrocardiogramme', type:'Cardiologie', room:'Salle 104', doctor:'Dr. Karim Saidi', status:'active',
+    schedule: { lun:'10:00-16:00', mar:'10:00-16:00', mer:'10:00-14:00', jeu:'10:00-16:00', ven:'Fermé' },
+    maxPerDay: 5 },
+  { id:'m5', name:'Analyseur Sanguin', type:'Laboratoire', room:'Labo A', doctor:'Multi-médecins', status:'inactive',
+    schedule: { lun:'07:30-19:00', mar:'07:30-19:00', mer:'07:30-19:00', jeu:'07:30-19:00', ven:'07:30-17:00' },
+    maxPerDay: 20 },
+];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let currentUser = null;
+let currentRole = 'patient';
+let currentPage = '';
+let calendarDate = new Date();
+let selectedDate = null;
+let selectedSlot = null;
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatDate(d) {
+  return d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+function isSameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+function initials(name) { return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+function selectRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+role).classList.add('active');
+  const emails = { patient:'patient@demo.com', medecin:'medecin@demo.com', admin:'assistant@demo.com' };
+  document.getElementById('login-email').value = emails[role];
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const pwd   = document.getElementById('login-pwd').value;
+  if (!USERS[email] || pwd !== 'demo123') { showToast('Identifiants incorrects','error'); return; }
+  currentUser = { email, ...USERS[email] };
+  initAppointments();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  setupUI();
+  showToast(`Bienvenue, ${currentUser.name} !`, 'success');
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ══════════════════════════════════════════
+//  UI SETUP
+// ══════════════════════════════════════════
+function setupUI() {
+  // Topbar
+  const av = document.getElementById('user-avatar');
+  av.textContent = initials(currentUser.name);
+  av.style.background = currentUser.color;
+  document.getElementById('user-name-display').textContent = currentUser.name;
+  const roles = { patient:'Patient', medecin:'Médecin', admin:'Assistante Médicale' };
+  document.getElementById('user-role-display').textContent = roles[currentUser.role];
+
+  // Sidebar
+  const sidebar = document.getElementById('sidebar');
+  const navs = getNavItems();
+  sidebar.innerHTML = '<div class="sidebar-section-title">Navigation</div>' +
+    navs.map(n => `<button class="nav-item" onclick="goTo('${n.id}')" id="nav-${n.id}">
+      <span class="nav-icon">${n.icon}</span>${n.label}
+      ${n.badge ? `<span class="nav-badge">${n.badge}</span>` : ''}
+    </button>`).join('');
+
+  goTo(navs[0].id);
+}
+
+function getNavItems() {
+  if (currentUser.role === 'patient') return [
+    { id:'dashboard', icon:'🏠', label:'Tableau de bord' },
+    { id:'calendar', icon:'📅', label:'Prendre RDV' },
+    { id:'mes-rdv', icon:'📋', label:'Mes RDV', badge: getMesRDVCount() },
+    { id:'ordonnances', icon:'📄', label:'Ordonnances' },
+    { id:'analyses', icon:'🔬', label:'Analyses' },
+  ];
+  if (currentUser.role === 'medecin') return [
+    { id:'dashboard', icon:'🏠', label:'Tableau de bord' },
+    { id:'agenda', icon:'📅', label:'Mon Agenda' },
+    { id:'patients', icon:'👥', label:'Mes Patients' },
+    { id:'ordonnances', icon:'📄', label:'Ordonnances' },
+  ];
+  if (currentUser.role === 'admin') return [
+    { id:'dashboard', icon:'🏠', label:'Tableau de bord' },
+    { id:'enregistrer-patient', icon:'👤', label:'Enregistrer Patient' },
+    { id:'gerer-rdv', icon:'📅', label:'Gérer les RDV' },
+    { id:'envoyer-sms', icon:'💬', label:'Envoyer SMS/Notif' },
+    { id:'valider-donnees', icon:'✅', label:'Valider Données' },
+  ];
+  return [];
+}
+
+function getMesRDVCount() {
+  let c = 0;
+  Object.values(appointments).forEach(day => day.forEach(r => {
+    if (r.patient === currentUser.name) c++;
+  }));
+  return c || '';
+}
+
+function goTo(pageId) {
+  currentPage = pageId;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const nb = document.getElementById('nav-'+pageId);
+  if (nb) nb.classList.add('active');
+  renderPage(pageId);
+}
+
+// ══════════════════════════════════════════
+//  PAGE ROUTER
+// ══════════════════════════════════════════
+function renderPage(id) {
+  const area = document.getElementById('content-area');
+  const pages = {
+    dashboard: renderDashboard,
+    calendar: renderCalendar,
+    'mes-rdv': renderMesRDV,
+    ordonnances: renderOrdonnances,
+    analyses: renderAnalyses,
+    agenda: renderAgenda,
+    patients: renderPatients,
+    machines: renderMachines,
+    'all-rdv': renderAllRDV,
+    users: renderUsers,
+    settings: renderSettings,
+    'enregistrer-patient': renderEnregistrerPatient,
+    'gerer-rdv': renderGererRDV,
+    'envoyer-sms': renderEnvoyerSMS,
+    'valider-donnees': renderValiderDonnees,
+  };
+  if (pages[id]) {
+    area.innerHTML = `<div class="page active" id="page-${id}">${pages[id]()}</div>`;
+    if (id === 'calendar') initCalendar();
+    if (id === 'machines') initMachineEvents();
+  }
+}
+
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+function renderDashboard() {
+  if (currentUser.role === 'patient') return renderPatientDashboard();
+  if (currentUser.role === 'medecin') return renderMedecinDashboard();
+  return renderAdminDashboard();
+}
+
+function renderPatientDashboard() {
+  const myRDV = []; const today = new Date();
+  Object.entries(appointments).forEach(([key, list]) => {
+    list.forEach(r => { if (r.patient === currentUser.name) myRDV.push({...r, date: key}); });
+  });
+  const upcoming = myRDV.filter(r => new Date(r.date) >= today).sort((a,b)=>a.date.localeCompare(b.date));
+  return `
+  <div class="page-header">
+    <h2>👋 Bonjour, ${currentUser.name.split(' ')[0]}</h2>
+    <p>Bienvenue sur votre espace patient</p>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e8f1f8">📅</div>
+      <div class="stat-info"><p>RDV à venir</p><h3>${upcoming.length}</h3></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#edf7f2">📄</div>
+      <div class="stat-info"><p>Ordonnances</p><h3>3</h3></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fdf0ea">🔬</div>
+      <div class="stat-info"><p>Analyses</p><h3>2</h3></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 Prochain rendez-vous</div>
+    ${upcoming.length ? `
+      <div style="display:flex;align-items:center;gap:20px;padding:16px;background:var(--bg);border-radius:12px;">
+        <div style="width:56px;height:56px;background:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;font-size:22px;">📋</div>
+        <div>
+          <div style="font-weight:700;font-size:16px;">${upcoming[0].motif}</div>
+          <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">${formatDate(new Date(upcoming[0].date))} à ${upcoming[0].time}</div>
+          <div style="color:var(--text-muted);font-size:13px;">${upcoming[0].doctor}</div>
+        </div>
+        <div style="margin-left:auto;"><span class="status-badge ${upcoming[0].status==='confirmed'?'confirmed':'pending'}">${upcoming[0].status==='confirmed'?'✓ Confirmé':'⏳ En attente'}</span></div>
+      </div>
+    ` : `<div class="empty-state"><div class="empty-icon">🗓️</div><h4>Aucun RDV à venir</h4><p>Prenez votre premier rendez-vous</p></div>`}
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Tous mes rendez-vous</div>
+    ${renderRDVList(myRDV.slice(0,5))}
+  </div>`;
+}
+
+function renderMedecinDashboard() {
+  const today = new Date(); const todayKey = dateKey(today);
+  const todayRDV = appointments[todayKey] || [];
+  const total = Object.values(appointments).reduce((s,v)=>s+v.length,0);
+  return `
+  <div class="page-header"><h2>👨‍⚕️ Tableau de bord</h2><p>Dr. Karim Saidi — ${formatDate(today)}</p></div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-icon" style="background:#e8f1f8">📅</div><div class="stat-info"><p>RDV aujourd'hui</p><h3>${todayRDV.length}</h3></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#edf7f2">👥</div><div class="stat-info"><p>Patients total</p><h3>${total}</h3></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fdf0ea">📄</div><div class="stat-info"><p>Ordonnances</p><h3>12</h3></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fff3cd">🔬</div><div class="stat-info"><p>Analyses prescrites</p><h3>7</h3></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 Rendez-vous du jour</div>
+    ${todayRDV.length ? renderRDVList(todayRDV.map(r=>({...r,date:todayKey}))) : `<div class="empty-state"><div class="empty-icon">☀️</div><h4>Journée libre</h4><p>Aucun rendez-vous aujourd'hui</p></div>`}
+  </div>`;
+}
+
+function renderAdminDashboard() {
+  const today = new Date(); const todayKey = dateKey(today);
+  const todayRDV = appointments[todayKey] || [];
+  const pending = Object.values(appointments).flat().filter(r=>r.status==='pending').length;
+  const total = Object.values(appointments).reduce((s,v)=>s+v.length,0);
+  return `
+  <div class="page-header">
+    <h2>👩‍💼 Bonjour, ${currentUser.name.split(' ')[0]}</h2>
+    <p>Assistante Médicale — ${formatDate(today)}</p>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-icon" style="background:#e8f1f8">📅</div><div class="stat-info"><p>RDV aujourd'hui</p><h3>${todayRDV.length}</h3></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fff3cd">⏳</div><div class="stat-info"><p>En attente validation</p><h3>${pending}</h3></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#edf7f2">📋</div><div class="stat-info"><p>RDV total</p><h3>${total}</h3></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fdf0ea">💬</div><div class="stat-info"><p>SMS envoyés</p><h3>12</h3></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">⏳ RDV en attente de validation</div>
+    ${renderRDVListAssistant(Object.entries(appointments).flatMap(([k,v])=>v.filter(r=>r.status==='pending').map(r=>({...r,date:k}))))}
+  </div>
+  <div class="card">
+    <div class="card-title">📅 RDV du jour</div>
+    ${todayRDV.length ? renderRDVListAssistant(todayRDV.map(r=>({...r,date:todayKey}))) : '<div class="empty-state"><div class="empty-icon">☀️</div><h4>Aucun RDV aujourd\'hui</h4></div>'}
+  </div>`;
+}
+
+function renderRDVListAssistant(list) {
+  if (!list.length) return '<div class="empty-state"><div class="empty-icon">✅</div><h4>Aucun RDV en attente</h4></div>';
+  return '<table class="rdv-table"><thead><tr><th>Date</th><th>Heure</th><th>Patient</th><th>Médecin</th><th>Motif</th><th>Statut</th><th>Actions</th></tr></thead><tbody>' +
+    list.map(r=>`<tr>
+      <td>${new Date(r.date).toLocaleDateString('fr-FR')}</td>
+      <td><strong>${r.time}</strong></td>
+      <td>${r.patient}</td>
+      <td>${r.doctor}</td>
+      <td>${r.motif}</td>
+      <td><span class="status-badge ${{confirmed:'confirmed',pending:'pending',cancelled:'cancelled'}[r.status]||'pending'}">${{confirmed:'✓ Confirmé',pending:'⏳ En attente',cancelled:'✗ Annulé'}[r.status]||r.status}</span></td>
+      <td>
+        <button class="btn-icon" title="Confirmer" onclick="validateRDV('${r.id}','confirmed')">✅</button>
+        <button class="btn-icon danger" title="Annuler" onclick="validateRDV('${r.id}','cancelled')">❌</button>
+      </td>
+    </tr>`).join('') +
+  '</tbody></table>';
+}
+
+function validateRDV(id, newStatus) {
+  let found = false;
+  Object.values(appointments).forEach(list => {
+    const r = list.find(x=>x.id===id);
+    if (r) { r.status = newStatus; found = true; }
+  });
+  if (found) {
+    showToast(newStatus==='confirmed' ? 'RDV confirmé !' : 'RDV annulé', newStatus==='confirmed'?'success':'error');
+    renderPage(currentPage);
+  }
+}
+
+// ══════════════════════════════════════════
+//  ASSISTANT PAGES
+// ══════════════════════════════════════════
+const registeredPatients = [
+  { id:'P001', nom:'Amina Benali', prenom:'', naissance:'1990-05-12', sanguin:'A+', tel:'22 345 678', email:'patient@demo.com', dossier:'D-2024-001' },
+  { id:'P002', nom:'Mohamed Trabelsi', prenom:'', naissance:'1978-11-30', sanguin:'O+', tel:'55 123 456', email:'m.trabelsi@demo.com', dossier:'D-2024-002' },
+];
+
+function renderEnregistrerPatient() {
+  return `
+  <div class="page-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h2>👤 Enregistrer un Patient</h2><p>Créer ou consulter un dossier patient</p></div>
+      <button class="btn-primary" style="width:auto;padding:10px 20px;margin:0" onclick="openNouveauPatientModal()">+ Nouveau Patient</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Patients enregistrés</div>
+    <table class="rdv-table">
+      <thead><tr><th>N° Dossier</th><th>Nom complet</th><th>Date naissance</th><th>Groupe sanguin</th><th>Téléphone</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${registeredPatients.map(p=>`<tr>
+          <td><span style="font-family:monospace;font-weight:700;color:var(--primary)">${p.dossier}</span></td>
+          <td><div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;">${p.nom[0]}</div>
+            <strong>${p.nom}</strong>
+          </div></td>
+          <td>${new Date(p.naissance).toLocaleDateString('fr-FR')}</td>
+          <td><span style="background:#fee;padding:3px 10px;border-radius:50px;font-size:12px;font-weight:700;color:#c0392b">${p.sanguin}</span></td>
+          <td>${p.tel}</td>
+          <td>
+            <button class="btn-icon" title="Voir dossier">📋</button>
+            <button class="btn-icon" title="Modifier">✏️</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function openNouveauPatientModal() {
+  document.getElementById('modal-body').innerHTML = `
+  <div class="modal-header"><h3>👤 Nouveau Patient</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="np-nom" placeholder="Nom de famille"></div>
+    <div class="form-group"><label class="form-label">Prénom</label><input class="form-input" id="np-prenom" placeholder="Prénom"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Date de naissance</label><input class="form-input" type="date" id="np-naissance"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-group"><label class="form-label">Groupe sanguin</label>
+      <select class="form-input" id="np-sanguin"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="np-tel" placeholder="XX XXX XXX"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="np-email" placeholder="email@exemple.com"></div>
+  <button class="btn-primary" onclick="saveNewPatient()">✅ Enregistrer le patient</button>`;
+  openModal();
+}
+
+function saveNewPatient() {
+  const nom = document.getElementById('np-nom').value.trim();
+  const prenom = document.getElementById('np-prenom').value.trim();
+  if (!nom) { showToast('Veuillez saisir un nom','error'); return; }
+  const id = 'P' + String(registeredPatients.length+1).padStart(3,'0');
+  registeredPatients.push({
+    id, nom, prenom,
+    naissance: document.getElementById('np-naissance').value || '2000-01-01',
+    sanguin: document.getElementById('np-sanguin').value,
+    tel: document.getElementById('np-tel').value || '—',
+    email: document.getElementById('np-email').value || '—',
+    dossier: 'D-2024-' + String(registeredPatients.length+1).padStart(3,'0')
+  });
+  closeModal();
+  showToast(`Patient ${nom} ${prenom} enregistré !`, 'success');
+  renderPage('enregistrer-patient');
+}
+
+function renderGererRDV() {
+  const allRDV = [];
+  Object.entries(appointments).forEach(([key,list])=>list.forEach(r=>allRDV.push({...r,date:key})));
+  allRDV.sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  return `
+  <div class="page-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h2>📅 Gérer les Rendez-Vous</h2><p>Modifier, valider ou annuler les RDV</p></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div><label class="form-label">Filtrer par statut</label>
+        <select class="form-input" style="width:180px" onchange="filterRDV(this.value)" id="rdv-filter">
+          <option value="all">Tous</option>
+          <option value="pending">En attente</option>
+          <option value="confirmed">Confirmés</option>
+          <option value="cancelled">Annulés</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="rdv-table-card">
+    ${renderRDVListAssistant(allRDV)}
+  </div>`;
+}
+
+function filterRDV(status) {
+  const allRDV = [];
+  Object.entries(appointments).forEach(([key,list])=>list.forEach(r=>allRDV.push({...r,date:key})));
+  const filtered = status==='all' ? allRDV : allRDV.filter(r=>r.status===status);
+  document.getElementById('rdv-table-card').innerHTML = renderRDVListAssistant(filtered);
+}
+
+const smsLog = [
+  { dest:'Amina Benali', tel:'22 345 678', msg:'Rappel RDV demain à 09:00 — MédiSync', date:'2026-04-24', status:'envoyé' },
+  { dest:'Mohamed Trabelsi', tel:'55 123 456', msg:'Votre RDV du 26/04 est confirmé — MédiSync', date:'2026-04-24', status:'envoyé' },
+];
+
+function renderEnvoyerSMS() {
+  return `
+  <div class="page-header"><h2>💬 Envoyer Notifications / SMS</h2><p>Informez les patients par SMS ou notification</p></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+    <div class="card" style="margin:0">
+      <div class="card-title">✉️ Nouveau message</div>
+      <div class="form-group">
+        <label class="form-label">Destinataire</label>
+        <select class="form-input" id="sms-dest">
+          ${registeredPatients.map(p=>`<option value="${p.nom}">${p.nom} — ${p.tel}</option>`).join('')}
+          <option value="ALL">📢 Tous les patients</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type de message</label>
+        <select class="form-input" id="sms-type" onchange="prefillSMS(this.value)">
+          <option value="">— Choisir un modèle —</option>
+          <option value="rappel">Rappel RDV</option>
+          <option value="confirm">Confirmation RDV</option>
+          <option value="annul">Annulation RDV</option>
+          <option value="custom">Message personnalisé</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea class="form-input" id="sms-msg" rows="4" placeholder="Tapez votre message..."></textarea>
+      </div>
+      <button class="btn-primary" onclick="sendSMS()">📤 Envoyer</button>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="card-title">📋 Historique des envois</div>
+      ${smsLog.map(s=>`
+      <div style="padding:12px;background:var(--bg);border-radius:10px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <strong style="font-size:14px">${s.dest}</strong>
+          <span style="font-size:11px;color:var(--text-muted)">${s.date}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">${s.msg}</div>
+        <span class="status-badge confirmed">✓ ${s.status}</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function prefillSMS(type) {
+  const msgs = {
+    rappel: 'Rappel : Vous avez un rendez-vous demain. Veuillez vous présenter 10 min avant. — MédiSync',
+    confirm: 'Votre rendez-vous a été confirmé. Nous vous attendons. — MédiSync',
+    annul: 'Votre rendez-vous a été annulé. Veuillez nous contacter pour reprogrammer. — MédiSync',
+    custom: ''
+  };
+  document.getElementById('sms-msg').value = msgs[type]||'';
+}
+
+function sendSMS() {
+  const dest = document.getElementById('sms-dest').value;
+  const msg = document.getElementById('sms-msg').value.trim();
+  if (!msg) { showToast('Veuillez saisir un message','error'); return; }
+  smsLog.unshift({ dest: dest==='ALL'?'Tous les patients':dest, tel:'—', msg, date: new Date().toLocaleDateString('fr-FR'), status:'envoyé' });
+  showToast('SMS envoyé avec succès !','success');
+  renderPage('envoyer-sms');
+}
+
+const validationItems = [
+  { id:'v1', type:'Fiche patient', nom:'Sana Jabbour', desc:'Informations incomplètes — téléphone manquant', priorite:'haute', done:false },
+  { id:'v2', type:'RDV', nom:'Rania Hamdi', desc:'Créneau chevauché avec autre RDV', priorite:'haute', done:false },
+  { id:'v3', type:'Ordonnance', nom:'Mohamed Trabelsi', desc:'Signature médecin illisible', priorite:'normale', done:false },
+  { id:'v4', type:'Analyse', nom:'Amina Benali', desc:'Résultat laboratoire reçu — à notifier patient', priorite:'normale', done:false },
+];
+
+function renderValiderDonnees() {
+  const done = validationItems.filter(v=>v.done).length;
+  const total = validationItems.length;
+  return `
+  <div class="page-header"><h2>✅ Valider les Données Saisies</h2><p>${done}/${total} éléments traités</p></div>
+  <div class="card">
+    <div style="margin-bottom:16px;background:var(--bg);border-radius:10px;overflow:hidden">
+      <div style="width:${Math.round(done/total*100)}%;height:8px;background:var(--success);border-radius:10px;transition:width 0.4s"></div>
+    </div>
+    ${validationItems.map(v=>`
+    <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;border-radius:12px;margin-bottom:8px;background:${v.done?'var(--success-bg)':'white'};border:1.5px solid ${v.done?'var(--success)':'var(--border)'};transition:all 0.2s">
+      <div style="width:42px;height:42px;border-radius:12px;background:${v.priorite==='haute'?'var(--danger-bg)':'var(--today)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+        ${{RDV:'📅',Ordonnance:'📄',Analyse:'🔬','Fiche patient':'👤'}[v.type]||'📋'}
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <strong>${v.type}</strong>
+          <span style="font-size:11px;padding:2px 8px;border-radius:50px;background:${v.priorite==='haute'?'var(--danger-bg)':'var(--today)'};color:${v.priorite==='haute'?'var(--danger)':'var(--today-text)'};font-weight:700">${v.priorite==='haute'?'⚠️ Urgent':'Normal'}</span>
+        </div>
+        <div style="font-weight:600;font-size:14px">${v.nom}</div>
+        <div style="font-size:13px;color:var(--text-muted)">${v.desc}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        ${v.done 
+          ? '<span class="status-badge confirmed">✓ Traité</span>'
+          : `<button class="btn-sm primary" onclick="validerItem('${v.id}')">✅ Valider</button>
+             <button class="btn-sm danger" onclick="rejeterItem('${v.id}')">❌ Rejeter</button>`
+        }
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function validerItem(id) {
+  const item = validationItems.find(v=>v.id===id);
+  if (item) { item.done = true; showToast(`"${item.nom}" validé !`,'success'); renderPage('valider-donnees'); }
+}
+function rejeterItem(id) {
+  const item = validationItems.find(v=>v.id===id);
+  if (item) { item.done = true; showToast(`"${item.nom}" rejeté`,'error'); renderPage('valider-donnees'); }
+}
+
+function renderRDVList(list) {
+  if (!list.length) return `<div class="empty-state"><div class="empty-icon">📋</div><h4>Aucun rendez-vous</h4></div>`;
+  return `<table class="rdv-table">
+    <thead><tr><th>Date</th><th>Heure</th><th>Patient</th><th>Médecin</th><th>Motif</th><th>Statut</th></tr></thead>
+    <tbody>
+      ${list.map(r=>`<tr>
+        <td>${formatDate(new Date(r.date)).split(' ').slice(1).join(' ')}</td>
+        <td><strong>${r.time}</strong></td>
+        <td>${r.patient}</td>
+        <td>${r.doctor}</td>
+        <td>${r.motif}</td>
+        <td><span class="status-badge ${{confirmed:'confirmed',pending:'pending',cancelled:'cancelled'}[r.status] || 'pending'}">${{confirmed:'✓ Confirmé',pending:'⏳ En attente',cancelled:'✗ Annulé'}[r.status] || r.status}</span></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ══════════════════════════════════════════
+//  CALENDAR (PATIENT)
+// ══════════════════════════════════════════
+function renderCalendar() {
+  return `
+  <div class="page-header"><h2>📅 Prendre un Rendez-Vous</h2><p>Sélectionnez une date disponible et un créneau horaire</p></div>
+  <div class="calendar-wrapper">
+    <div class="card" style="margin-bottom:0">
+      <div class="calendar-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+        <h3 id="cal-month-label"></h3>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="calendar-grid" id="cal-grid"></div>
+      <div class="calendar-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--available)"></div>Disponible</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--booked)"></div>Complet</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--today)"></div>Aujourd'hui</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--primary)"></div>Sélectionné</div>
+      </div>
+    </div>
+    <div class="card slots-panel" style="margin-bottom:0" id="slots-panel">
+      <div class="select-prompt">
+        <div class="prompt-icon">👆</div>
+        <p>Sélectionnez une date<br>pour voir les créneaux disponibles</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+function initCalendar() {
+  calendarDate = new Date();
+  selectedDate = null; selectedSlot = null;
+  renderCalendarGrid();
+}
+
+function changeMonth(dir) {
+  calendarDate.setMonth(calendarDate.getMonth() + dir);
+  selectedDate = null; selectedSlot = null;
+  renderCalendarGrid();
+  document.getElementById('slots-panel').innerHTML = `<div class="select-prompt"><div class="prompt-icon">👆</div><p>Sélectionnez une date<br>pour voir les créneaux disponibles</p></div>`;
+}
+
+function renderCalendarGrid() {
+  const today = new Date();
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+  const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  document.getElementById('cal-month-label').textContent = `${months[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const startOffset = (firstDay === 0) ? 6 : firstDay - 1;
+
+  const days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  let html = days.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+
+  for (let i=0; i<startOffset; i++) html += `<div class="cal-day empty"></div>`;
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const key = dateKey(date);
+    const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const isToday = isSameDay(date, today);
+    const isSel = selectedDate && isSameDay(date, selectedDate);
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    const dayRDV = appointments[key] || [];
+    const bookedSlots = dayRDV.length;
+    const maxSlots = 8;
+    const isAvailable = !isPast && !isWeekend && bookedSlots < maxSlots;
+    const isBooked = !isPast && !isWeekend && bookedSlots >= maxSlots;
+
+    let cls = 'cal-day';
+    if (isPast || isWeekend) cls += ' past';
+    else if (isSel) cls += ' selected';
+    else if (isToday) cls += ' today';
+    else if (isBooked) cls += ' booked';
+    else if (isAvailable) cls += ' available';
+
+    const onclick = (!isPast && !isWeekend) ? `onclick="selectDate(${year},${month},${d})"` : '';
+    const dot = (bookedSlots > 0 && !isPast) ? `<div class="cal-day-dot"></div>` : '';
+    html += `<div class="${cls}" ${onclick}>${d}${dot}</div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function selectDate(year, month, day) {
+  selectedDate = new Date(year, month, day);
+  selectedSlot = null;
+  renderCalendarGrid();
+  renderSlotsPanel();
+}
+
+function renderSlotsPanel() {
+  const panel = document.getElementById('slots-panel');
+  if (!selectedDate) return;
+  const key = dateKey(selectedDate);
+  const dayRDV = appointments[key] || [];
+  const takenSlots = dayRDV.map(r=>r.time);
+
+  let slotsHtml = TIME_SLOTS.map(t => {
+    const taken = takenSlots.includes(t);
+    const isSel = selectedSlot === t;
+    if (taken) return `<button class="slot-btn taken" disabled>🔴 ${t}<br><small>Réservé</small></button>`;
+    return `<button class="slot-btn free ${isSel?'selected-slot':''}" onclick="selectSlot('${t}')">${t}</button>`;
+  }).join('');
+
+  const freeCount = TIME_SLOTS.length - takenSlots.length;
+  panel.innerHTML = `
+    <h4>📅 ${formatDate(selectedDate)}</h4>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">${freeCount} créneau(x) disponible(s)</p>
+    <div class="slot-grid">${slotsHtml}</div>
+    <div class="booking-form" id="booking-form" style="display:${selectedSlot?'block':'none'}">
+      <div style="margin:16px 0 12px;padding:12px;background:var(--accent-soft);border-radius:10px;font-size:13px;color:var(--accent);">
+        ✅ Créneau sélectionné : <strong id="slot-display">${selectedSlot}</strong>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motif de consultation</label>
+        <input class="form-input" id="booking-motif" placeholder="Ex: Consultation générale, Suivi...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Médecin</label>
+        <select class="form-input" id="booking-doctor">
+          <option>Dr. Karim Saidi — Généraliste</option>
+          <option>Dr. Sonia Mejri — Cardiologue</option>
+          <option>Dr. Mehdi Hajji — Radiologue</option>
+        </select>
+      </div>
+      <button class="btn-book" onclick="confirmBooking()">✓ Confirmer le rendez-vous</button>
+    </div>`;
+}
+
+function selectSlot(time) {
+  selectedSlot = time;
+  renderSlotsPanel();
+}
+
+function confirmBooking() {
+  const motif = document.getElementById('booking-motif').value.trim();
+  const doctor = document.getElementById('booking-doctor').value;
+  if (!motif) { showToast('Veuillez saisir un motif','error'); return; }
+  const key = dateKey(selectedDate);
+  if (!appointments[key]) appointments[key] = [];
+  appointments[key].push({
+    id: Math.random().toString(36).slice(2),
+    time: selectedSlot,
+    patient: currentUser.name,
+    doctor: doctor.split(' — ')[0],
+    status: 'pending',
+    motif
+  });
+  showToast('Rendez-vous réservé avec succès !','success');
+  selectedSlot = null;
+  renderCalendarGrid();
+  renderSlotsPanel();
+  // update nav badge
+  setupUI(); goTo('calendar');
+}
+
+// ══════════════════════════════════════════
+//  MES RDV (PATIENT)
+// ══════════════════════════════════════════
+function renderMesRDV() {
+  const myRDV = [];
+  Object.entries(appointments).forEach(([key,list]) => {
+    list.forEach(r => { if (r.patient === currentUser.name) myRDV.push({...r, date:key}); });
+  });
+  myRDV.sort((a,b)=>a.date.localeCompare(b.date));
+  return `
+  <div class="page-header"><h2>📋 Mes Rendez-Vous</h2><p>${myRDV.length} rendez-vous au total</p></div>
+  <div class="card">
+    ${myRDV.length ? renderRDVList(myRDV) : `<div class="empty-state"><div class="empty-icon">📋</div><h4>Aucun rendez-vous</h4><p>Prenez votre premier rendez-vous</p></div>`}
+  </div>`;
+}
+
+function renderOrdonnances() {
+  const ordo = [
+    { id:'ORD-001', date:'2026-04-01', doctor:'Dr. Karim Saidi', medicaments:['Doliprane 1000mg','Amoxicilline 500mg'], status:'active' },
+    { id:'ORD-002', date:'2026-03-15', doctor:'Dr. Sonia Mejri', medicaments:['Cardixan 20mg'], status:'active' },
+    { id:'ORD-003', date:'2026-02-20', doctor:'Dr. Karim Saidi', medicaments:['Ibuprofène 400mg'], status:'expired' },
+  ];
+  return `
+  <div class="page-header"><h2>📄 Mes Ordonnances</h2><p>${ordo.length} ordonnances</p></div>
+  ${ordo.map(o=>`
+  <div class="card" style="cursor:pointer">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:4px;">${o.id}</div>
+        <div style="color:var(--text-muted);font-size:13px;">Prescrit le ${new Date(o.date).toLocaleDateString('fr-FR')} par ${o.doctor}</div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          ${o.medicaments.map(m=>`<span style="background:var(--bg);padding:4px 10px;border-radius:50px;font-size:12px;font-weight:500;">${m}</span>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <span class="status-badge ${o.status==='active'?'confirmed':'cancelled'}">${o.status==='active'?'✓ Active':'✗ Expirée'}</span>
+        <button class="btn-icon" title="Télécharger PDF">📥</button>
+      </div>
+    </div>
+  </div>`).join('')}`;
+}
+
+function renderAnalyses() {
+  const analyses = [
+    { id:'ANA-001', type:'Bilan sanguin complet', date:'2026-04-10', doctor:'Dr. Karim Saidi', status:'done', labo:'Laboratoire Central' },
+    { id:'ANA-002', type:'Échocardiographie', date:'2026-04-20', doctor:'Dr. Sonia Mejri', status:'pending', labo:'Clinique Cardiologie' },
+  ];
+  return `
+  <div class="page-header"><h2>🔬 Mes Analyses</h2><p>${analyses.length} analyses prescrites</p></div>
+  ${analyses.map(a=>`
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:48px;height:48px;background:#f0f7ff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">🔬</div>
+        <div>
+          <div style="font-weight:700;">${a.type}</div>
+          <div style="color:var(--text-muted);font-size:13px;">Prescrit le ${new Date(a.date).toLocaleDateString('fr-FR')} — ${a.doctor}</div>
+          <div style="color:var(--text-muted);font-size:12px;margin-top:2px;">📍 ${a.labo}</div>
+        </div>
+      </div>
+      <span class="status-badge ${a.status==='done'?'confirmed':'pending'}">${a.status==='done'?'✓ Résultat disponible':'⏳ En attente'}</span>
+    </div>
+  </div>`).join('')}`;
+}
+
+// ══════════════════════════════════════════
+//  MÉDECIN — AGENDA
+// ══════════════════════════════════════════
+function renderAgenda() {
+  const allRDV = [];
+  Object.entries(appointments).forEach(([key,list]) => {
+    list.forEach(r => allRDV.push({...r, date:key}));
+  });
+  allRDV.sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  return `
+  <div class="page-header"><h2>📅 Mon Agenda</h2><p>Tous vos rendez-vous</p></div>
+  <div class="card">
+    ${renderRDVList(allRDV)}
+  </div>`;
+}
+
+function renderPatients() {
+  const pats = new Set();
+  Object.values(appointments).forEach(list=>list.forEach(r=>pats.add(r.patient)));
+  return `
+  <div class="page-header"><h2>👥 Mes Patients</h2><p>${pats.size} patients enregistrés</p></div>
+  <div class="card">
+    <table class="rdv-table">
+      <thead><tr><th>Nom</th><th>Groupe sanguin</th><th>Dernier RDV</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${[...pats].map(p=>`<tr>
+          <td><div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;">${initials(p)}</div>
+            <strong>${p}</strong>
+          </div></td>
+          <td>${['A+','B+','O+','AB+'][Math.floor(Math.random()*4)]}</td>
+          <td style="color:var(--text-muted);font-size:13px;">Récemment</td>
+          <td>
+            <button class="btn-icon" title="Voir dossier">📋</button>
+            <button class="btn-icon" title="Écrire ordonnance">📄</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+//  ADMIN — MACHINES
+// ══════════════════════════════════════════
+function renderMachines() {
+  return `
+  <div class="page-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h2>⚙️ Configuration des Machines</h2><p>Gérez les équipements et leurs horaires</p></div>
+      <button class="btn-primary" style="width:auto;padding:10px 20px;margin:0" onclick="openAddMachineModal()">+ Ajouter une machine</button>
+    </div>
+  </div>
+  <div class="machines-grid" id="machines-grid">
+    ${MACHINES.map(renderMachineCard).join('')}
+  </div>`;
+}
+
+function renderMachineCard(m) {
+  const statusLabel = {active:'✅ Active', inactive:'❌ Inactive', maintenance:'🔧 Maintenance'}[m.status];
+  const machineIcons = {Imagerie:'🧲', Echographie:'🔊', Radiologie:'☢️', Cardiologie:'❤️', Laboratoire:'🧪'};
+  return `<div class="machine-card" id="mc-${m.id}">
+    <div class="machine-header">
+      <div class="machine-icon">${machineIcons[m.type]||'⚙️'}</div>
+      <span class="machine-status ${m.status}">${statusLabel}</span>
+    </div>
+    <div class="machine-name">${m.name}</div>
+    <div class="machine-info">🏥 ${m.room}</div>
+    <div class="machine-info">👨‍⚕️ ${m.doctor}</div>
+    <div class="machine-info">📊 Max: ${m.maxPerDay} RDV/jour</div>
+    <div class="machine-schedule">
+      <div class="machine-schedule-title">⏰ Horaires</div>
+      ${Object.entries(m.schedule).map(([day,hours])=>`<div class="schedule-row"><span>${{lun:'Lundi',mar:'Mardi',mer:'Mercredi',jeu:'Jeudi',ven:'Vendredi'}[day]}</span><span>${hours}</span></div>`).join('')}
+    </div>
+    <div class="machine-actions">
+      <button class="btn-sm primary" onclick="openEditMachineModal('${m.id}')">✏️ Configurer</button>
+      <button class="btn-sm danger" onclick="toggleMachineStatus('${m.id}')">${m.status==='active'?'⏹ Désactiver':'▶ Activer'}</button>
+    </div>
+  </div>`;
+}
+
+function initMachineEvents() {}
+
+function toggleMachineStatus(id) {
+  const m = MACHINES.find(x=>x.id===id);
+  if (!m) return;
+  if (m.status==='active') m.status='inactive';
+  else if (m.status==='inactive') m.status='active';
+  else m.status='active';
+  showToast(`Machine "${m.name}" mise à jour`,'success');
+  renderPage('machines');
+  initMachineEvents();
+}
+
+function openEditMachineModal(id) {
+  const m = MACHINES.find(x=>x.id===id);
+  if (!m) return;
+  const days = {lun:'Lundi',mar:'Mardi',mer:'Mercredi',jeu:'Jeudi',ven:'Vendredi'};
+  document.getElementById('modal-body').innerHTML = `
+  <div class="modal-header">
+    <h3>✏️ Configurer : ${m.name}</h3>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Salle</label>
+    <input class="form-input" id="edit-room" value="${m.room}">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Médecin responsable</label>
+    <input class="form-input" id="edit-doctor" value="${m.doctor}">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Max RDV / jour</label>
+    <input class="form-input" type="number" id="edit-max" value="${m.maxPerDay}">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Statut</label>
+    <select class="form-input" id="edit-status">
+      <option value="active" ${m.status==='active'?'selected':''}>Active</option>
+      <option value="inactive" ${m.status==='inactive'?'selected':''}>Inactive</option>
+      <option value="maintenance" ${m.status==='maintenance'?'selected':''}>Maintenance</option>
+    </select>
+  </div>
+  <div style="margin:16px 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted)">⏰ Horaires par jour</div>
+  ${Object.entries(m.schedule).map(([day,hours])=>`
+  <div class="form-group">
+    <label class="form-label">${days[day]}</label>
+    <input class="form-input" id="edit-sched-${day}" value="${hours}" placeholder="08:00-17:00 ou Fermé">
+  </div>`).join('')}
+  <button class="btn-primary" onclick="saveMachineEdit('${id}')">💾 Enregistrer</button>`;
+  openModal();
+}
+
+function saveMachineEdit(id) {
+  const m = MACHINES.find(x=>x.id===id);
+  if (!m) return;
+  m.room = document.getElementById('edit-room').value;
+  m.doctor = document.getElementById('edit-doctor').value;
+  m.maxPerDay = parseInt(document.getElementById('edit-max').value)||m.maxPerDay;
+  m.status = document.getElementById('edit-status').value;
+  ['lun','mar','mer','jeu','ven'].forEach(d => {
+    m.schedule[d] = document.getElementById(`edit-sched-${d}`).value;
+  });
+  closeModal();
+  showToast('Configuration enregistrée !','success');
+  renderPage('machines');
+}
+
+function openAddMachineModal() {
+  document.getElementById('modal-body').innerHTML = `
+  <div class="modal-header"><h3>➕ Nouvelle Machine</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+  <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="new-name" placeholder="Ex: Scanner IRM 3T"></div>
+  <div class="form-group"><label class="form-label">Type</label>
+    <select class="form-input" id="new-type">
+      <option>Imagerie</option><option>Echographie</option><option>Radiologie</option><option>Cardiologie</option><option>Laboratoire</option>
+    </select>
+  </div>
+  <div class="form-group"><label class="form-label">Salle</label><input class="form-input" id="new-room" placeholder="Ex: Salle 105"></div>
+  <div class="form-group"><label class="form-label">Médecin responsable</label><input class="form-input" id="new-doctor" placeholder="Dr. Nom Prénom"></div>
+  <div class="form-group"><label class="form-label">Max RDV / jour</label><input class="form-input" type="number" id="new-max" value="8"></div>
+  <button class="btn-primary" onclick="addMachine()">➕ Ajouter</button>`;
+  openModal();
+}
+
+function addMachine() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { showToast('Veuillez saisir un nom','error'); return; }
+  MACHINES.push({
+    id: 'm'+Date.now(),
+    name,
+    type: document.getElementById('new-type').value,
+    room: document.getElementById('new-room').value || 'Salle ?',
+    doctor: document.getElementById('new-doctor').value || 'Non assigné',
+    status: 'active',
+    schedule: {lun:'08:00-17:00',mar:'08:00-17:00',mer:'08:00-17:00',jeu:'08:00-17:00',ven:'08:00-17:00'},
+    maxPerDay: parseInt(document.getElementById('new-max').value)||8,
+  });
+  closeModal();
+  showToast('Machine ajoutée !','success');
+  renderPage('machines');
+}
+
+// ══════════════════════════════════════════
+//  ADMIN — ALL RDV
+// ══════════════════════════════════════════
+function renderAllRDV() {
+  const allRDV = [];
+  Object.entries(appointments).forEach(([key,list])=>list.forEach(r=>allRDV.push({...r,date:key})));
+  allRDV.sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  return `
+  <div class="page-header"><h2>📋 Tous les Rendez-Vous</h2><p>${allRDV.length} RDV enregistrés</p></div>
+  <div class="card">${renderRDVList(allRDV)}</div>`;
+}
+
+function renderUsers() {
+  const users = [
+    {name:'Amina Benali', email:'patient@demo.com', role:'Patient', status:'active'},
+    {name:'Dr. Karim Saidi', email:'medecin@demo.com', role:'Médecin', status:'active'},
+    {name:'SYSTEM', email:'assistant@demo.com', role:'Système 🤖', status:'active'},
+    {name:'Mohamed Trabelsi', email:'m.trabelsi@demo.com', role:'Patient', status:'active'},
+    {name:'Sana Jabbour', email:'s.jabbour@demo.com', role:'Patient', status:'inactive'},
+  ];
+  return `
+  <div class="page-header"><h2>👥 Gestion des Utilisateurs</h2><p>${users.length} utilisateurs</p></div>
+  <div class="card">
+    <table class="rdv-table">
+      <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>${users.map(u=>`<tr>
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;">${initials(u.name)}</div>
+          <strong>${u.name}</strong></div></td>
+        <td style="color:var(--text-muted);font-size:13px;">${u.email}</td>
+        <td><span style="background:var(--bg);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:600;">${u.role}</span></td>
+        <td><span class="status-badge ${u.status==='active'?'confirmed':'cancelled'}">${u.status==='active'?'✓ Actif':'✗ Inactif'}</span></td>
+        <td><button class="btn-icon">✏️</button> <button class="btn-icon danger">🗑️</button></td>
+      </tr>`).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderSettings() {
+  return `
+  <div class="page-header"><h2>🔧 Paramètres Système</h2><p>Configuration globale de MédiSync</p></div>
+  <div class="card">
+    <div class="card-title">🔔 Notifications</div>
+    ${[
+      {label:'SMS de rappel', desc:'Envoyer un SMS 24h avant le RDV', on:true},
+      {label:'Email de confirmation', desc:'Email automatique après réservation', on:true},
+      {label:'Alertes machine', desc:'Notifier en cas de panne ou maintenance', on:false},
+    ].map(t=>`<div class="toggle-row">
+      <div><div class="toggle-label">${t.label}</div><div class="toggle-desc">${t.desc}</div></div>
+      <label class="toggle"><input type="checkbox" ${t.on?'checked':''}><span class="toggle-slider"></span></label>
+    </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="card-title">📅 Règles de réservation</div>
+    <div class="form-group"><label class="form-label">Délai minimum avant RDV (heures)</label><input class="form-input" type="number" value="2"></div>
+    <div class="form-group"><label class="form-label">Délai maximum de réservation (jours)</label><input class="form-input" type="number" value="60"></div>
+    <div class="form-group"><label class="form-label">Max annulations par patient/mois</label><input class="form-input" type="number" value="3"></div>
+    <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="showToast('Paramètres sauvegardés !','success')">💾 Enregistrer</button>
+  </div>
+  <div class="card">
+    <div class="card-title">🔐 Sécurité</div>
+    ${[
+      {label:'Authentification à deux facteurs', desc:'OTP par SMS pour les médecins et admins', on:true},
+      {label:'Session automatique expirée', desc:'Déconnexion après 30 minutes d\'inactivité', on:true},
+    ].map(t=>`<div class="toggle-row">
+      <div><div class="toggle-label">${t.label}</div><div class="toggle-desc">${t.desc}</div></div>
+      <label class="toggle"><input type="checkbox" ${t.on?'checked':''}><span class="toggle-slider"></span></label>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════
+function openModal() { document.getElementById('modal-overlay').classList.add('open'); }
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function showToast(msg, type='') {
+  const tc = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = {success:'✅', error:'❌', '':`ℹ️`};
+  t.innerHTML = `${icons[type]||'ℹ️'} ${msg}`;
+  tc.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+</script>
+</body>
+</html>
